@@ -285,9 +285,9 @@
         <span>ম্যাচ লিডারবোর্ড (Leaderboard)</span>
       </div>
 
-      <label for="matchSelect">ম্যাচ নির্বাচন করুন:</label>
+      <label for="matchSelect">ম্যাপ নির্বাচন করুন:</label>
       <select id="matchSelect">
-        <option value="">ম্যাচ লোড হচ্ছে...</option>
+        <option value="">ম্যাপ নির্বাচন করুন</option>
       </select>
 
       <div class="table-container">
@@ -303,7 +303,7 @@
           </thead>
           <tbody id="leaderboard">
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-muted);">কোনো ম্যাচ সিলেক্ট করা হয়নি</td>
+              <td colspan="5" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে ম্যাপ নির্বাচন করুন</td>
             </tr>
           </tbody>
         </table>
@@ -317,8 +317,15 @@
         <span>অ্যাডমিন প্যানেল (Admin Panel)</span>
       </div>
 
-      <!-- Admin Login View -->
-      <div id="adminLoginForm">
+      <!-- Toggle Button for Admin Panel -->
+      <div id="adminToggleContainer" style="margin-bottom: 10px;">
+        <button id="toggleAdminBtn" class="btn btn-secondary" style="width: 100%;">
+          <i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন
+        </button>
+      </div>
+
+      <!-- Admin Login View (Hidden by default) -->
+      <div id="adminLoginForm" class="hidden">
         <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.9rem;">
           অ্যাডমিন প্যানেলে ঢুকে ম্যাচ তৈরি ও এডিট করতে আপনার জিমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।
         </p>
@@ -362,20 +369,17 @@
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // আপনার Firebase Config
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB4Xaw2zDu5QEd759d6OXviK90aJl9kuoM",
-  authDomain: "hexa-benzene-turnament.firebaseapp.com",
-  databaseURL: "https://hexa-benzene-turnament-default-rtdb.firebaseio.com",
-  projectId: "hexa-benzene-turnament",
-  storageBucket: "hexa-benzene-turnament.firebasestorage.app",
-  messagingSenderId: "834334941784",
-  appId: "1:834334941784:web:e272e5f03f2ace7256a02d",
-  measurementId: "G-GSWH2K952G"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyB4Xaw2zDu5QEd759d6OXviK90aJl9kuoM",
+      authDomain: "hexa-benzene-turnament.firebaseapp.com",
+      databaseURL: "https://hexa-benzene-turnament-default-rtdb.firebaseio.com",
+      projectId: "hexa-benzene-turnament",
+      storageBucket: "hexa-benzene-turnament.firebasestorage.app",
+      messagingSenderId: "834334941784",
+      appId: "1:834334941784:web:e272e5f03f2ace7256a02d",
+      measurementId: "G-GSWH2K952G"
+    };
 
-    // Firebase Init
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -383,7 +387,6 @@ const firebaseConfig = {
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
 
-    // Toast Notification helper
     function showToast(msg) {
       const toast = document.getElementById("toast");
       toast.innerText = msg;
@@ -391,17 +394,32 @@ const firebaseConfig = {
       setTimeout(() => { toast.style.display = "none"; }, 3000);
     }
 
-    // Auth Change Listener (চেক করবে আপনি লগইন আছেন নাকি)
+    // Toggle Admin Panel Button Event
+    const toggleAdminBtn = document.getElementById("toggleAdminBtn");
+    const adminLoginForm = document.getElementById("adminLoginForm");
+    const adminToggleContainer = document.getElementById("adminToggleContainer");
+
+    toggleAdminBtn.addEventListener("click", () => {
+      adminLoginForm.classList.toggle("hidden");
+      if (!adminLoginForm.classList.contains("hidden")) {
+        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
+      } else {
+        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
+      }
+    });
+
+    // Auth Change Listener
     onAuthStateChanged(auth, (user) => {
-      const loginForm = document.getElementById("adminLoginForm");
       const dashboard = document.getElementById("adminDashboard");
       
       if (user) {
-        loginForm.classList.add("hidden");
+        adminToggleContainer.classList.add("hidden");
+        adminLoginForm.classList.add("hidden");
         dashboard.classList.remove("hidden");
       } else {
-        loginForm.classList.remove("hidden");
+        adminToggleContainer.classList.remove("hidden");
         dashboard.classList.add("hidden");
+        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
       }
     });
 
@@ -424,7 +442,7 @@ const firebaseConfig = {
       signOut(auth).then(() => showToast("লগআউট হয়েছে।"));
     });
 
-    // Realtime Database Syncing (Cloud Firestore)
+    // Realtime Database Syncing
     onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
       if (docSnap.exists()) {
         data = docSnap.data();
@@ -462,6 +480,15 @@ const firebaseConfig = {
 
       input.value = "";
       save();
+    }
+
+    // ম্যাচ ডিলিট করার ফাংশন
+    window.deleteMatch = function(matchId) {
+      if (confirm("আপনি কি নিশ্চিতভাবে এই ম্যাচটি ডিলিট করতে চান?")) {
+        data.matches = data.matches.filter(m => m.id !== matchId);
+        save();
+        showToast("ম্যাচটি সফলভাবে ডিলিট করা হয়েছে!");
+      }
     }
 
     window.addTeam = function(id) {
@@ -502,7 +529,6 @@ const firebaseConfig = {
       const match = data.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      match.matches = match.teams.filter(t => t.id !== teamId); // Wait, fix filter
       match.teams = match.teams.filter(t => t.id !== teamId);
       save();
     }
@@ -520,7 +546,8 @@ const firebaseConfig = {
 
       const previous = select.value;
 
-      select.innerHTML = data.matches.map(m =>
+      // ডিফল্ট অপشن সহ ড্রপডাউন পপুলেট করা
+      select.innerHTML = `<option value="">ম্যাপ নির্বাচন করুন</option>` + data.matches.map(m =>
         `<option value="${m.id}">${m.name}</option>`
       ).join("");
 
@@ -528,9 +555,12 @@ const firebaseConfig = {
         select.innerHTML = `<option value="">কোনো ম্যাচ পাওয়া যায়নি</option>`;
         board.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">এখনো কোনো ম্যাচ তৈরি করা হয়নি।</td></tr>`;
       } else {
-        select.value = data.matches.some(m => m.id === previous)
-          ? previous
-          : data.matches[0].id;
+        // যদি পূর্বে কোনো ভ্যালিড ম্যাচ সিলেক্ট করা থাকে সেটি ধরে রাখবে, না হলে ডিফল্ট রাখবে
+        if (data.matches.some(m => m.id === previous)) {
+          select.value = previous;
+        } else {
+          select.value = "";
+        }
 
         const match = data.matches.find(m => m.id === select.value);
         if (match) {
@@ -554,16 +584,23 @@ const firebaseConfig = {
               </tr>
             `;
           }).join("") : `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">এই ম্যাচে কোনো টিম ডাটা নেই</td></tr>`;
+        } else {
+          board.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে উপর থেকে একটি ম্যাপ/ম্যাচ নির্বাচন করুন</td></tr>`;
         }
       }
 
       admin.innerHTML = data.matches.map(m => `
         <div class="admin-match-box">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <h3 style="font-size: 1rem; color: var(--accent-yellow);">${m.name}</h3>
-            <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
-              <i class="fa-solid fa-plus"></i> Team যোগ করো
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                <i class="fa-solid fa-plus"></i> Team যোগ করো
+              </button>
+              <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">
+                <i class="fa-solid fa-trash-can"></i> ম্যাচ ডিলিট
+              </button>
+            </div>
           </div>
 
           ${m.teams.map(t => `
