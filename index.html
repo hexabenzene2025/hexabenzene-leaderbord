@@ -167,7 +167,7 @@
     /* Leaderboard Table - Optimized for Single Frame view */
     .table-container {
       width: 100%;
-      overflow-x: hidden; /* স্ক্রলবার লুকিয়ে এক ফ্রেমে ফিট করার জন্য */
+      overflow-x: hidden;
     }
 
     table {
@@ -175,7 +175,7 @@
       border-collapse: collapse;
       text-align: left;
       margin-top: 5px;
-      table-layout: fixed; /* কলামের সাইজ ফিক্সড রাখা যাতে বাইরে না যায় */
+      table-layout: fixed;
     }
 
     th, td {
@@ -194,7 +194,6 @@
       text-transform: uppercase;
     }
 
-    /* কলামগুলোর নির্দিষ্ট উইডথ যাতে এক স্ক্রিনে সুন্দরভাবে ধরে */
     th:nth-child(1), td:nth-child(1) { width: 12%; text-align: center; }
     th:nth-child(2), td:nth-child(2) { width: 40%; }
     th:nth-child(3), td:nth-child(3) { width: 16%; text-align: center; }
@@ -239,12 +238,6 @@
       flex-shrink: 0;
     }
 
-    .team-name-text {
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     /* Admin Styles */
     .admin-status {
       display: flex;
@@ -277,8 +270,8 @@
 
     .admin-team-row {
       display: grid;
-      grid-template-columns: 1.5fr 1.5fr 1fr 1fr auto auto;
-      gap: 8px;
+      grid-template-columns: 1.5fr 1.2fr 0.9fr 0.9fr 0.7fr auto auto;
+      gap: 6px;
       align-items: center;
       margin-top: 8px;
       background: var(--card-bg);
@@ -300,7 +293,6 @@
       display: none !important;
     }
 
-    /* Notification */
     #toast {
       position: fixed;
       bottom: 20px;
@@ -373,7 +365,7 @@
         </button>
       </div>
 
-      <!-- Admin Login View (Hidden by default) -->
+      <!-- Admin Login View -->
       <div id="adminLoginForm" class="hidden">
         <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 0.85rem;">
           অ্যাডমিন প্যানেলে ঢুকে ম্যাচ তৈরি ও এডিট করতে আপনার জিমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।
@@ -387,7 +379,7 @@
         </form>
       </div>
 
-      <!-- Admin Dashboard (Log in করার পর দেখাবে) -->
+      <!-- Admin Dashboard -->
       <div id="adminDashboard" class="hidden">
         <div class="admin-status">
           <span><i class="fa-solid fa-circle-check"></i> অ্যাডমিন হিসেবে লগইন আছেন</span>
@@ -459,7 +451,6 @@
 
     onAuthStateChanged(auth, (user) => {
       const dashboard = document.getElementById("adminDashboard");
-      
       if (user) {
         adminToggleContainer.classList.add("hidden");
         adminLoginForm.classList.add("hidden");
@@ -582,6 +573,24 @@
       save();
     }
 
+    // নতুন ইমেজ ফাইল হ্যান্ডেল করার ফাংশন
+    window.handleLogoUpload = function(matchId, teamId, fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      if (file.size > 500 * 1024) { // সাইজ যেন খুব বড় না হয় (সর্বোচ্চ ৫০০ কিলোবাইট)
+        showToast("ছবির সাইজ খুব বড়! ৫০০ KB এর কম সাইজের ছবি দিন।");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        window.updateTeam(matchId, teamId, 'logo', e.target.result);
+        showToast("লোগো সফলভাবে আপলোড হয়েছে!");
+      };
+      reader.readAsDataURL(file);
+    }
+
     window.deleteTeam = function(matchId, teamId) {
       const match = data.matches.find(m => m.id === matchId);
       if (!match) return;
@@ -681,9 +690,9 @@
                       onchange="updateTeam('${m.id}','${t.id}','name',this.value)"
                       placeholder="Team Name" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;">
 
-                    <input value="${t.logo || ''}"
-                      onchange="updateTeam('${m.id}','${t.id}','logo',this.value)"
-                      placeholder="Logo URL" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;">
+                    <input type="file" accept="image/*"
+                      onchange="handleLogoUpload('${m.id}','${t.id}',this)"
+                      style="margin-bottom: 0; padding: 4px; font-size: 0.75rem; background:#0d1117;" title="Upload Logo">
 
                     <input type="number" min="0" value="${t.kill}"
                       onchange="updateTeam('${m.id}','${t.id}','kill',this.value)"
