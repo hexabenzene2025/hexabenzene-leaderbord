@@ -164,10 +164,10 @@
       color: #000;
     }
 
-    /* Leaderboard Table - Optimized for Single Frame view */
+    /* Leaderboard Table */
     .table-container {
       width: 100%;
-      overflow-x: hidden;
+      overflow-x: auto;
     }
 
     table {
@@ -175,15 +175,12 @@
       border-collapse: collapse;
       text-align: left;
       margin-top: 5px;
-      table-layout: fixed;
     }
 
     th, td {
       padding: 8px 6px;
       border-bottom: 1px solid var(--card-border);
       font-size: 0.85rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
@@ -194,11 +191,12 @@
       text-transform: uppercase;
     }
 
-    th:nth-child(1), td:nth-child(1) { width: 12%; text-align: center; }
-    th:nth-child(2), td:nth-child(2) { width: 40%; }
-    th:nth-child(3), td:nth-child(3) { width: 16%; text-align: center; }
-    th:nth-child(4), td:nth-child(4) { width: 16%; text-align: center; }
-    th:nth-child(5), td:nth-child(5) { width: 16%; text-align: center; }
+    th:nth-child(1), td:nth-child(1) { width: 10%; text-align: center; }
+    th:nth-child(2), td:nth-child(2) { width: 36%; }
+    th:nth-child(3), td:nth-child(3) { width: 13%; text-align: center; }
+    th:nth-child(4), td:nth-child(4) { width: 13%; text-align: center; }
+    th:nth-child(5), td:nth-child(5) { width: 14%; text-align: center; }
+    th:nth-child(6), td:nth-child(6) { width: 14%; text-align: center; }
 
     tbody tr:hover {
       background: rgba(255, 255, 255, 0.02);
@@ -270,7 +268,7 @@
 
     .admin-team-row {
       display: grid;
-      grid-template-columns: 1.5fr 1.2fr 0.9fr 0.9fr 0.7fr auto auto;
+      grid-template-columns: 1.4fr 1fr 0.7fr 0.7fr 0.7fr 0.7fr auto auto;
       gap: 6px;
       align-items: center;
       margin-top: 8px;
@@ -337,6 +335,7 @@
             <tr>
               <th>Rank</th>
               <th>Team</th>
+              <th>Booyah</th>
               <th>Kill</th>
               <th>Place</th>
               <th>Total</th>
@@ -344,7 +343,7 @@
           </thead>
           <tbody id="leaderboard">
             <tr>
-              <td colspan="5" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে ম্যাপ নির্বাচন করুন</td>
+              <td colspan="6" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে ম্যাপ নির্বাচন করুন</td>
             </tr>
           </tbody>
         </table>
@@ -379,10 +378,10 @@
         </form>
       </div>
 
-      <!-- Admin Dashboard -->
+      <!-- Admin Dashboard (Separate View Style) -->
       <div id="adminDashboard" class="hidden">
         <div class="admin-status">
-          <span><i class="fa-solid fa-circle-check"></i> অ্যাডমিন হিসেবে লগইন আছেন</span>
+          <span><i class="fa-solid fa-circle-check"></i> অ্যাডমিন হিসেবে লগইন আছেন (ড্যাশবোর্ড ওপেন)</span>
           <button id="logoutBtn" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">লগআউট</button>
         </div>
 
@@ -439,25 +438,31 @@
     const toggleAdminBtn = document.getElementById("toggleAdminBtn");
     const adminLoginForm = document.getElementById("adminLoginForm");
     const adminToggleContainer = document.getElementById("adminToggleContainer");
+    const adminDashboard = document.getElementById("adminDashboard");
 
     toggleAdminBtn.addEventListener("click", () => {
-      adminLoginForm.classList.toggle("hidden");
-      if (!adminLoginForm.classList.contains("hidden")) {
-        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
+      // যদি ইউজার ইতিমধ্যে লগইন করা থাকে, তবে সরাসরি ড্যাশবোর্ড টগল করবে, না হলে লগইন ফর্ম দেখাবে
+      if (auth.currentUser) {
+        adminDashboard.classList.toggle("hidden");
+        toggleAdminBtn.innerHTML = adminDashboard.classList.contains("hidden") 
+          ? '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন' 
+          : '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
       } else {
-        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
+        adminLoginForm.classList.toggle("hidden");
+        toggleAdminBtn.innerHTML = adminLoginForm.classList.contains("hidden") 
+          ? '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন' 
+          : '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
       }
     });
 
     onAuthStateChanged(auth, (user) => {
-      const dashboard = document.getElementById("adminDashboard");
       if (user) {
         adminToggleContainer.classList.add("hidden");
         adminLoginForm.classList.add("hidden");
-        dashboard.classList.remove("hidden");
+        adminDashboard.classList.remove("hidden");
       } else {
         adminToggleContainer.classList.remove("hidden");
-        dashboard.classList.add("hidden");
+        adminDashboard.classList.add("hidden");
         toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
       }
     });
@@ -476,7 +481,12 @@
     });
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      signOut(auth).then(() => showToast("লগআউট হয়েছে।"));
+      signOut(auth).then(() => {
+        showToast("লগআউট হয়েছে।");
+        adminDashboard.classList.add("hidden");
+        adminToggleContainer.classList.remove("hidden");
+        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
+      });
     });
 
     onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
@@ -551,6 +561,7 @@
         id: Date.now().toString() + Math.random(),
         name: "New Team",
         logo: "",
+        booyah: 0,
         kill: 0,
         placement: 0
       });
@@ -573,13 +584,12 @@
       save();
     }
 
-    // নতুন ইমেজ ফাইল হ্যান্ডেল করার ফাংশন
     window.handleLogoUpload = function(matchId, teamId, fileInput) {
       const file = fileInput.files[0];
       if (!file) return;
 
-      if (file.size > 5000 * 1024) { // সাইজ যেন খুব বড় না হয় (সর্বোচ্চ ৫০০ কিলোবাইট)
-        showToast("ছবির সাইজ খুব বড়! ৫০০০  এর কম সাইজের ছবি দিন।");
+      if (file.size > 5000 * 1024) {
+        showToast("ছবির সাইজ খুব বড়! ছোট সাইজের ছবি দিন।");
         return;
       }
 
@@ -618,7 +628,7 @@
 
       if (!data.matches.length) {
         select.innerHTML = `<option value="">কোনো ম্যাচ পাওয়া যায়নি</option>`;
-        board.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">এখনো কোনো ম্যাচ তৈরি করা হয়নি।</td></tr>`;
+        board.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">এখনো কোনো ম্যাচ তৈরি করা হয়নি।</td></tr>`;
       } else {
         if (data.matches.some(m => m.id === previous)) {
           select.value = previous;
@@ -651,14 +661,15 @@
                     <span class="team-name-text">${t.name}</span>
                   </div>
                 </td>
+                <td style="text-align: center;">${t.booyah || 0}</td>
                 <td style="text-align: center;">${t.kill}</td>
                 <td style="text-align: center;">${t.placement}</td>
                 <td style="color: var(--accent-yellow); font-weight: bold; text-align: center;">${total(t)}</td>
               </tr>
             `;
-          }).join("") : `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">এই ম্যাচে কোনো টিম ডাটা নেই</td></tr>`;
+          }).join("") : `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">এই ম্যাচে কোনো টিম ডাটা নেই</td></tr>`;
         } else {
-          board.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে উপর থেকে একটি ম্যাপ/ম্যাচ নির্বাচন করুন</td></tr>`;
+          board.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে উপর থেকে একটি ম্যাপ/ম্যাচ নির্বাচন করুন</td></tr>`;
         }
       }
 
@@ -693,6 +704,10 @@
                     <input type="file" accept="image/*"
                       onchange="handleLogoUpload('${m.id}','${t.id}',this)"
                       style="margin-bottom: 0; padding: 4px; font-size: 0.75rem; background:#0d1117;" title="Upload Logo">
+
+                    <input type="number" min="0" value="${t.booyah || 0}"
+                      onchange="updateTeam('${m.id}','${t.id}','booyah',this.value)"
+                      placeholder="Booyah" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;" title="Booyah Count">
 
                     <input type="number" min="0" value="${t.kill}"
                       onchange="updateTeam('${m.id}','${t.id}','kill',this.value)"
