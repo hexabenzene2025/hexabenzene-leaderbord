@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free Fire Tournament Leaderboard</title>
   
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tiro+Bangla&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -17,19 +14,12 @@
       --card-bg: #161b22;
       --card-border: #232a35;
       --accent-yellow: #ffb703;
-      --accent-red: #ff0055;
       --accent-blue: #00f0ff;
       --text-main: #f0f6fc;
       --text-muted: #8b949e;
-      --success: #00e676;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', 'Tiro Bangla', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Tiro Bangla', sans-serif; }
 
     body {
       background-color: var(--bg-color);
@@ -41,12 +31,8 @@
         radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.05) 0%, transparent 20%);
     }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+    .container { max-width: 900px; margin: 0 auto; }
 
-    /* Header Styling */
     header {
       text-align: center;
       margin-bottom: 20px;
@@ -66,12 +52,8 @@
       margin-bottom: 5px;
     }
 
-    header p {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
+    header p { color: var(--text-muted); font-size: 0.85rem; }
 
-    /* Card Styling */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -92,15 +74,9 @@
       padding-bottom: 8px;
     }
 
-    /* Form Controls */
-    label {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
+    label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.85rem; }
 
-    select, input {
+    select {
       width: 100%;
       padding: 10px 12px;
       background: #0d1117;
@@ -109,17 +85,11 @@
       color: var(--text-main);
       font-size: 0.9rem;
       outline: none;
-      transition: all 0.3s ease;
       margin-bottom: 12px;
     }
 
-    select:focus, input:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
-    }
-
     .btn {
-      padding: 8px 14px;
+      padding: 10px 16px;
       border: none;
       border-radius: 8px;
       font-weight: 600;
@@ -128,29 +98,9 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      text-decoration: none;
+      font-size: 0.9rem;
       transition: all 0.2s ease;
-      font-size: 0.85rem;
-    }
-
-    .btn-primary {
-      background: var(--accent-yellow);
-      color: #000;
-    }
-
-    .btn-primary:hover {
-      background: #e0a200;
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: rgba(255, 0, 85, 0.2);
-      color: var(--accent-red);
-      border: 1px solid var(--accent-red);
-    }
-
-    .btn-danger:hover {
-      background: var(--accent-red);
-      color: #fff;
     }
 
     .btn-secondary {
@@ -159,23 +109,11 @@
       border: 1px solid var(--accent-blue);
     }
 
-    .btn-secondary:hover {
-      background: var(--accent-blue);
-      color: #000;
-    }
+    .btn-secondary:hover { background: var(--accent-blue); color: #000; }
 
-    /* Leaderboard Table */
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-    }
+    .table-container { width: 100%; overflow-x: auto; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      margin-top: 5px;
-    }
+    table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 5px; }
 
     th, td {
       padding: 8px 6px;
@@ -184,12 +122,7 @@
       white-space: nowrap;
     }
 
-    th {
-      background: #0d1117;
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-    }
+    th { background: #0d1117; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
 
     th:nth-child(1), td:nth-child(1) { width: 10%; text-align: center; }
     th:nth-child(2), td:nth-child(2) { width: 36%; }
@@ -197,10 +130,6 @@
     th:nth-child(4), td:nth-child(4) { width: 13%; text-align: center; }
     th:nth-child(5), td:nth-child(5) { width: 14%; text-align: center; }
     th:nth-child(6), td:nth-child(6) { width: 14%; text-align: center; }
-
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
 
     .rank-badge {
       font-weight: 700;
@@ -218,13 +147,7 @@
     .rank-2 { background: #c0c0c0; color: #000; }
     .rank-3 { background: #cd7f32; color: #000; }
 
-    /* Team Logo in Leaderboard */
-    .team-info-cell {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      overflow: hidden;
-    }
+    .team-info-cell { display: flex; align-items: center; gap: 6px; overflow: hidden; }
 
     .team-logo-img {
       width: 24px;
@@ -235,89 +158,17 @@
       background: #0d1117;
       flex-shrink: 0;
     }
-
-    /* Admin Styles */
-    .admin-status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      background: rgba(0, 230, 118, 0.1);
-      border: 1px solid var(--success);
-      border-radius: 8px;
-      color: var(--success);
-      margin-bottom: 12px;
-      font-size: 0.85rem;
-    }
-
-    .admin-match-box {
-      background: #0d1117;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    .admin-match-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .admin-team-row {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr 0.7fr 0.7fr 0.7fr 0.7fr auto auto;
-      gap: 6px;
-      align-items: center;
-      margin-top: 8px;
-      background: var(--card-bg);
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid var(--card-border);
-    }
-
-    @media (max-width: 768px) {
-      .admin-team-row {
-        grid-template-columns: 1fr;
-      }
-      header h1 {
-        font-size: 1.2rem;
-      }
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--card-bg);
-      color: var(--text-main);
-      padding: 10px 16px;
-      border-radius: 8px;
-      border-left: 4px solid var(--accent-yellow);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 1000;
-      display: none;
-      font-size: 0.85rem;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    
-    <!-- Title -->
     <header>
       <h1>LEADERBOARD FROM HEXA BENZENE OFFICIAL ☣️</h1>
       <p>Free Fire Tournament Live Points Table</p>
     </header>
 
-    <!-- Public Leaderboard Section -->
+    <!-- Public Leaderboard -->
     <section class="card">
       <div class="card-title">
         <i class="fa-solid fa-trophy" style="color: var(--accent-yellow);"></i>
@@ -350,64 +201,17 @@
       </div>
     </section>
 
-    <!-- Admin Panel Section -->
-    <section class="card">
-      <div class="card-title">
-        <i class="fa-solid fa-lock" style="color: var(--accent-red);"></i>
-        <span>অ্যাডমিন প্যানেল (Admin Panel)</span>
-      </div>
-
-      <!-- Toggle Button for Admin Panel -->
-      <div id="adminToggleContainer" style="margin-bottom: 10px;">
-        <button id="toggleAdminBtn" class="btn btn-secondary" style="width: 100%;">
-          <i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন
-        </button>
-      </div>
-
-      <!-- Admin Login View -->
-      <div id="adminLoginForm" class="hidden">
-        <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 0.85rem;">
-        এডমিন প্যানেলে ঢুকতে হলে (শুধুমাত্র এডমিন) জিমেইল এবং পাসওয়ার্ড দিয়ে লগইন করুন 
-        </p>
-        <form id="loginForm">
-          <input type="email" id="adminEmail" placeholder="আপনার অ্যাডমিন জিমেইল (Email)" required>
-          <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড (Password)" required>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            <i class="fa-solid fa-right-to-bracket"></i> অ্যাডমিন লগইন
-          </button>
-        </form>
-      </div>
-
-      <!-- Admin Dashboard (Separate View Style) -->
-      <div id="adminDashboard" class="hidden">
-        <div class="admin-status">
-          <span><i class="fa-solid fa-circle-check"></i> অ্যাডমিন হিসেবে লগইন আছেন (ড্যাশবোর্ড ওপেন)</span>
-          <button id="logoutBtn" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">লগআউট</button>
-        </div>
-
-        <!-- Match Creation -->
-        <div style="margin-bottom: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px;">
-          <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--accent-yellow);">নতুন ম্যাচ তৈরি করুন</h3>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="matchName" placeholder="যেমন: Match 1 - Bermuda (9 PM)" style="margin-bottom: 0;">
-            <button id="createMatch" class="btn btn-primary"><i class="fa-solid fa-plus"></i> তৈরি</button>
-          </div>
-        </div>
-
-        <!-- Admin Matches & Teams Area -->
-        <div id="adminArea"></div>
-      </div>
+    <!-- Admin Panel Redirect Button -->
+    <section class="card" style="text-align: center;">
+      <a href="admin.html" class="btn btn-secondary" style="width: 100%;">
+        <i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেলে যান
+      </a>
     </section>
   </div>
 
-  <!-- Notification Toast -->
-  <div id="toast">মেসেজ</div>
-
-  <!-- Firebase Integration & Logic Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB4Xaw2zDu5QEd759d6OXviK90aJl9kuoM",
@@ -421,73 +225,10 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
 
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
-    let openMatchId = null;
-
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.style.display = "block";
-      setTimeout(() => { toast.style.display = "none"; }, 3000);
-    }
-
-    const toggleAdminBtn = document.getElementById("toggleAdminBtn");
-    const adminLoginForm = document.getElementById("adminLoginForm");
-    const adminToggleContainer = document.getElementById("adminToggleContainer");
-    const adminDashboard = document.getElementById("adminDashboard");
-
-    toggleAdminBtn.addEventListener("click", () => {
-      // যদি ইউজার ইতিমধ্যে লগইন করা থাকে, তবে সরাসরি ড্যাশবোর্ড টগল করবে, না হলে লগইন ফর্ম দেখাবে
-      if (auth.currentUser) {
-        adminDashboard.classList.toggle("hidden");
-        toggleAdminBtn.innerHTML = adminDashboard.classList.contains("hidden") 
-          ? '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন' 
-          : '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
-      } else {
-        adminLoginForm.classList.toggle("hidden");
-        toggleAdminBtn.innerHTML = adminLoginForm.classList.contains("hidden") 
-          ? '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন' 
-          : '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল বন্ধ করুন';
-      }
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        adminToggleContainer.classList.add("hidden");
-        adminLoginForm.classList.add("hidden");
-        adminDashboard.classList.remove("hidden");
-      } else {
-        adminToggleContainer.classList.remove("hidden");
-        adminDashboard.classList.add("hidden");
-        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
-      }
-    });
-
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("adminEmail").value;
-      const pass = document.getElementById("adminPassword").value;
-
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        showToast("সফলভাবে অ্যাডমিন লগইন হয়েছে!");
-      } catch (error) {
-        showToast("ভুল ইমেইল বা পাসওয়ার্ড! আবার চেষ্টা করুন।");
-      }
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      signOut(auth).then(() => {
-        showToast("লগআউট হয়েছে।");
-        adminDashboard.classList.add("hidden");
-        adminToggleContainer.classList.remove("hidden");
-        toggleAdminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> অ্যাডমিন প্যানেল ওপেন করুন';
-      });
-    });
 
     onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
       if (docSnap.exists()) {
@@ -496,129 +237,16 @@
         data = { matches: [] };
       }
       render();
-    }, (error) => {
-      console.error("Error fetching data: ", error);
     });
 
-    async function save() {
-      try {
-        await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
-        render();
-      } catch (error) {
-        showToast("ডেটা সেভ করতে সমস্যা হয়েছে (Admin Auth Required)");
-      }
-    }
-
-    window.createMatch = function() {
-      const input = document.getElementById("matchName");
-      const name = input.value.trim();
-
-      if (!name) {
-        showToast("Match-এর নাম লেখো!");
-        return;
-      }
-
-      const newId = Date.now().toString();
-      data.matches.push({
-        id: newId,
-        name: name,
-        teams: []
-      });
-
-      openMatchId = newId;
-      input.value = "";
-      save();
-    }
-
-    window.deleteMatch = function(matchId) {
-      if (confirm("আপনি কি নিশ্চিতভাবে এই ম্যাচটি ডিলিট করতে চান?")) {
-        data.matches = data.matches.filter(m => m.id !== matchId);
-        if (openMatchId === matchId) openMatchId = null;
-        save();
-        showToast("ম্যাচটি সফলভাবে ডিলিট করা হয়েছে!");
-      }
-    }
-
-    window.toggleMatchAccordion = function(matchId) {
-      if (openMatchId === matchId) {
-        openMatchId = null;
-      } else {
-        openMatchId = matchId;
-      }
-      render();
-    }
-
-    window.addTeam = function(id) {
-      const match = data.matches.find(m => m.id === id);
-      if (!match) return;
-
-      if (match.teams.length >= 12) {
-        showToast("সর্বোচ্চ ১২টি টিম যোগ করতে পারবে!");
-        return;
-      }
-
-      match.teams.push({
-        id: Date.now().toString() + Math.random(),
-        name: "New Team",
-        logo: "",
-        booyah: 0,
-        kill: 0,
-        placement: 0
-      });
-
-      save();
-    }
-
-    window.updateTeam = function(matchId, teamId, field, value) {
-      const match = data.matches.find(m => m.id === matchId);
-      const team = match?.teams.find(t => t.id === teamId);
-
-      if (!team) return;
-
-      if (field === "name" || field === "logo") {
-        team[field] = value;
-      } else {
-        team[field] = Math.max(0, Number(value) || 0);
-      }
-
-      save();
-    }
-
-    window.handleLogoUpload = function(matchId, teamId, fileInput) {
-      const file = fileInput.files[0];
-      if (!file) return;
-
-      if (file.size > 5000 * 1024) {
-        showToast("ছবির সাইজ খুব বড়! ছোট সাইজের ছবি দিন।");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        window.updateTeam(matchId, teamId, 'logo', e.target.result);
-        showToast("লোগো সফলভাবে আপলোড হয়েছে!");
-      };
-      reader.readAsDataURL(file);
-    }
-
-    window.deleteTeam = function(matchId, teamId) {
-      const match = data.matches.find(m => m.id === matchId);
-      if (!match) return;
-
-      match.teams = match.teams.filter(t => t.id !== teamId);
-      save();
-    }
-
     function total(team) {
-      return Number(team.kill) + Number(team.placement);
+      return Number(team.kill || 0) + Number(team.placement || 0);
     }
 
     function render() {
       const select = document.getElementById("matchSelect");
       const board = document.getElementById("leaderboard");
-      const admin = document.getElementById("adminArea");
-
-      if (!select || !board || !admin) return;
+      if (!select || !board) return;
 
       const previous = select.value;
 
@@ -638,9 +266,7 @@
 
         const match = data.matches.find(m => m.id === select.value);
         if (match) {
-          const teams = [...match.teams].sort(
-            (a, b) => total(b) - total(a)
-          );
+          const teams = [...match.teams].sort((a, b) => total(b) - total(a));
 
           board.innerHTML = teams.length ? teams.map((t, i) => {
             let rankBadge = i + 1;
@@ -658,12 +284,12 @@
                 <td>
                   <div class="team-info-cell">
                     ${logoHtml}
-                    <span class="team-name-text">${t.name}</span>
+                    <span>${t.name}</span>
                   </div>
                 </td>
                 <td style="text-align: center;">${t.booyah || 0}</td>
-                <td style="text-align: center;">${t.kill}</td>
-                <td style="text-align: center;">${t.placement}</td>
+                <td style="text-align: center;">${t.kill || 0}</td>
+                <td style="text-align: center;">${t.placement || 0}</td>
                 <td style="color: var(--accent-yellow); font-weight: bold; text-align: center;">${total(t)}</td>
               </tr>
             `;
@@ -672,70 +298,9 @@
           board.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">অনুগ্রহ করে উপর থেকে একটি ম্যাপ/ম্যাচ নির্বাচন করুন</td></tr>`;
         }
       }
-
-      admin.innerHTML = data.matches.map(m => {
-        const isOpen = openMatchId === m.id;
-        return `
-          <div class="admin-match-box">
-            <div class="admin-match-header" onclick="toggleMatchAccordion('${m.id}')">
-              <h3 style="font-size: 0.9rem; color: var(--accent-yellow); display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid ${isOpen ? 'fa-chevron-down' : 'fa-chevron-right'}" style="font-size: 0.75rem;"></i> 
-                ${m.name} <span style="font-size: 0.75rem; color: var(--text-muted);">(${m.teams.length} Teams)</span>
-              </h3>
-              <div style="display: flex; gap: 6px;" onclick="event.stopPropagation()">
-                <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">
-                  <i class="fa-solid fa-plus"></i> Team
-                </button>
-                <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">
-                  <i class="fa-solid fa-trash-can"></i> ডিলিট
-                </button>
-              </div>
-            </div>
-
-            ${isOpen ? `
-              <div style="margin-top: 12px; border-top: 1px solid var(--card-border); padding-top: 8px;">
-                ${m.teams.length === 0 ? `<p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 8px;">এই ম্যাচে কোনো টিম যোগ করা হয়নি।</p>` : ''}
-                ${m.teams.map(t => `
-                  <div class="admin-team-row">
-                    <input value="${t.name}"
-                      onchange="updateTeam('${m.id}','${t.id}','name',this.value)"
-                      placeholder="Team Name" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;">
-
-                    <input type="file" accept="image/*"
-                      onchange="handleLogoUpload('${m.id}','${t.id}',this)"
-                      style="margin-bottom: 0; padding: 4px; font-size: 0.75rem; background:#0d1117;" title="Upload Logo">
-
-                    <input type="number" min="0" value="${t.booyah || 0}"
-                      onchange="updateTeam('${m.id}','${t.id}','booyah',this.value)"
-                      placeholder="Booyah" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;" title="Booyah Count">
-
-                    <input type="number" min="0" value="${t.kill}"
-                      onchange="updateTeam('${m.id}','${t.id}','kill',this.value)"
-                      placeholder="Kill" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;">
-
-                    <input type="number" min="0" value="${t.placement}"
-                      onchange="updateTeam('${m.id}','${t.id}','placement',this.value)"
-                      placeholder="Place" style="margin-bottom: 0; padding: 8px 10px; font-size: 0.85rem;">
-
-                    <strong style="font-size: 0.85rem; color: var(--accent-yellow);">Tot: ${total(t)}</strong>
-
-                    <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding: 6px 10px; font-size: 0.75rem;">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                `).join("")}
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join("");
     }
 
-    document.getElementById("createMatch")
-      ?.addEventListener("click", window.createMatch);
-
-    document.getElementById("matchSelect")
-      ?.addEventListener("change", render);
+    document.getElementById("matchSelect")?.addEventListener("change", render);
   </script>
 </body>
 </html>
