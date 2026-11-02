@@ -227,6 +227,14 @@
       margin-bottom: 15px;
     }
 
+    .admin-match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
     .admin-team-row {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr auto auto;
@@ -386,6 +394,8 @@
 
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
+    // কোন ম্যাচের টগল খোলা আছে তা ট্র্যাক করার জন্য
+    let openMatchId = null;
 
     function showToast(msg) {
       const toast = document.getElementById("toast");
@@ -472,11 +482,15 @@
         return;
       }
 
+      const newId = Date.now().toString();
       data.matches.push({
-        id: Date.now().toString(),
+        id: newId,
         name: name,
         teams: []
       });
+
+      // নতুন ম্যাচ তৈরি করার পর সেটির টগল অটো ওপেন করে দেওয়া
+      openMatchId = newId;
 
       input.value = "";
       save();
@@ -486,9 +500,20 @@
     window.deleteMatch = function(matchId) {
       if (confirm("আপনি কি নিশ্চিতভাবে এই ম্যাচটি ডিলিট করতে চান?")) {
         data.matches = data.matches.filter(m => m.id !== matchId);
+        if (openMatchId === matchId) openMatchId = null;
         save();
         showToast("ম্যাচটি সফলভাবে ডিলিট করা হয়েছে!");
       }
+    }
+
+    // ম্যাচের টগল ওপেন বা ক্লোজ করার ফাংশন
+    window.toggleMatchAccordion = function(matchId) {
+      if (openMatchId === matchId) {
+        openMatchId = null; // বন্ধ করে দেওয়া
+      } else {
+        openMatchId = matchId; // ওপেন করা
+      }
+      render();
     }
 
     window.addTeam = function(id) {
@@ -546,7 +571,6 @@
 
       const previous = select.value;
 
-      // ডিফল্ট অপشن সহ ড্রপডাউন পপুলেট করা
       select.innerHTML = `<option value="">ম্যাপ নির্বাচন করুন</option>` + data.matches.map(m =>
         `<option value="${m.id}">${m.name}</option>`
       ).join("");
@@ -555,7 +579,6 @@
         select.innerHTML = `<option value="">কোনো ম্যাচ পাওয়া যায়নি</option>`;
         board.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">এখনো কোনো ম্যাচ তৈরি করা হয়নি।</td></tr>`;
       } else {
-        // যদি পূর্বে কোনো ভ্যালিড ম্যাচ সিলেক্ট করা থাকে সেটি ধরে রাখবে, না হলে ডিফল্ট রাখবে
         if (data.matches.some(m => m.id === previous)) {
           select.value = previous;
         } else {
@@ -589,43 +612,55 @@
         }
       }
 
-      admin.innerHTML = data.matches.map(m => `
-        <div class="admin-match-box">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <h3 style="font-size: 1rem; color: var(--accent-yellow);">${m.name}</h3>
-            <div style="display: flex; gap: 8px;">
-              <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
-                <i class="fa-solid fa-plus"></i> Team যোগ করো
-              </button>
-              <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">
-                <i class="fa-solid fa-trash-can"></i> ম্যাচ ডিলিট
-              </button>
+      // অ্যাডমিন প্যানেলে ম্যাচের নামগুলোতে ক্লিক করলে টগল হওয়ার সুবিধা
+      admin.innerHTML = data.matches.map(m => {
+        const isOpen = openMatchId === m.id;
+        return `
+          <div class="admin-match-box">
+            <div class="admin-match-header" onclick="toggleMatchAccordion('${m.id}')">
+              <h3 style="font-size: 1rem; color: var(--accent-yellow); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid ${isOpen ? 'fa-chevron-down' : 'fa-chevron-right'}" style="font-size: 0.8rem;"></i> 
+                ${m.name} <span style="font-size: 0.8rem; color: var(--text-muted);">(${m.teams.length} Teams)</span>
+              </h3>
+              <div style="display: flex; gap: 8px;" onclick="event.stopPropagation()">
+                <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                  <i class="fa-solid fa-plus"></i> Team যোগ
+                </button>
+                <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">
+                  <i class="fa-solid fa-trash-can"></i> ডিলিট
+                </button>
+              </div>
             </div>
+
+            ${isOpen ? `
+              <div style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                ${m.teams.length === 0 ? `<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 10px;">এই ম্যাচে কোনো টিম যোগ করা হয়নি।</p>` : ''}
+                ${m.teams.map(t => `
+                  <div class="admin-team-row">
+                    <input value="${t.name}"
+                      onchange="updateTeam('${m.id}','${t.id}','name',this.value)"
+                      placeholder="Team Name" style="margin-bottom: 0;">
+
+                    <input type="number" min="0" value="${t.kill}"
+                      onchange="updateTeam('${m.id}','${t.id}','kill',this.value)"
+                      placeholder="Kill" style="margin-bottom: 0;">
+
+                    <input type="number" min="0" value="${t.placement}"
+                      onchange="updateTeam('${m.id}','${t.id}','placement',this.value)"
+                      placeholder="Placement" style="margin-bottom: 0;">
+
+                    <strong style="font-size: 0.9rem; color: var(--accent-yellow);">Total: ${total(t)}</strong>
+
+                    <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding: 8px 12px; font-size: 0.8rem;">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ''}
           </div>
-
-          ${m.teams.map(t => `
-            <div class="admin-team-row">
-              <input value="${t.name}"
-                onchange="updateTeam('${m.id}','${t.id}','name',this.value)"
-                placeholder="Team Name" style="margin-bottom: 0;">
-
-              <input type="number" min="0" value="${t.kill}"
-                onchange="updateTeam('${m.id}','${t.id}','kill',this.value)"
-                placeholder="Kill" style="margin-bottom: 0;">
-
-              <input type="number" min="0" value="${t.placement}"
-                onchange="updateTeam('${m.id}','${t.id}','placement',this.value)"
-                placeholder="Placement" style="margin-bottom: 0;">
-
-              <strong style="font-size: 0.9rem; color: var(--accent-yellow);">Total: ${total(t)}</strong>
-
-              <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding: 8px 12px; font-size: 0.8rem;">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          `).join("")}
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     document.getElementById("createMatch")
