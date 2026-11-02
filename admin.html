@@ -1,1 +1,378 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Tournament Management</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Tiro+Bangla&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #161b22;
+      --card-border: #232a35;
+      --accent-yellow: #ffb703;
+      --accent-red: #ff0055;
+      --accent-blue: #00f0ff;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --success: #00e676;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Tiro Bangla', sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 15px 5px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px 10px;
+      background: linear-gradient(180deg, rgba(22,27,34,0.8) 0%, rgba(11,14,20,0.8) 100%);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent-yellow);
+      font-size: 1.4rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--accent-yellow); color: #000; }
+    .btn-success { background: var(--success); color: #000; }
+    .btn-danger { background: rgba(255, 0, 85, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+    .btn-secondary { background: rgba(0, 240, 255, 0.1); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+
+    .admin-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid var(--success);
+      border-radius: 8px;
+      color: var(--success);
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+    }
+
+    .admin-match-box {
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .admin-team-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 0.7fr 0.7fr 0.7fr 0.7fr auto;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      background: var(--card-bg);
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+
+    @media (max-width: 768px) {
+      .admin-team-row { grid-template-columns: 1fr; }
+    }
+
+    .hidden { display: none !important; }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 10px 16px;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent-yellow);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>HEXA BENZENE ADMIN PANEL 🛡️</h1>
+      <p>ম্যাচ ও টিম ম্যানেজমেন্ট সিস্টেম</p>
+    </header>
+
+    <div style="margin-bottom: 15px;">
+      <a href="index.html" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> মূল লিডারবোর্ডে ফিরে যান
+      </a>
+    </div>
+
+    <!-- Login Form -->
+    <div id="adminLoginForm" class="card">
+      <h3 style="margin-bottom: 10px; color: var(--accent-blue);">অ্যাডমিন লগইন</h3>
+      <form id="loginForm">
+        <input type="email" id="adminEmail" placeholder="আপনার অ্যাডমিন ইমেইল" required>
+        <input type="password" id="adminPassword" placeholder="পাসওয়ার্ড" required>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          <i class="fa-solid fa-right-to-bracket"></i> লগইন করুন
+        </button>
+      </form>
+    </div>
+
+    <!-- Admin Dashboard (Only visible after login) -->
+    <div id="adminDashboard" class="hidden">
+      <div class="admin-status">
+        <span><i class="fa-solid fa-circle-check"></i> আপনি অ্যাডমিন হিসেবে লগইন আছেন</span>
+        <button id="logoutBtn" class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;">লগআউট</button>
+      </div>
+
+      <!-- Match Creation -->
+      <div class="card">
+        <h3 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--accent-yellow);">নতুন ম্যাচ তৈরি করুন</h3>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="matchName" placeholder="যেমন: Match 1 - Bermuda" style="margin-bottom: 0;">
+          <button id="createMatch" class="btn btn-primary"><i class="fa-solid fa-plus"></i> তৈরি</button>
+        </div>
+      </div>
+
+      <!-- Admin Matches Area -->
+      <div id="adminArea"></div>
+
+      <!-- OK / Save Button -->
+      <div class="card" style="text-align: center; margin-top: 15px;">
+        <button id="saveAllBtn" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 1rem;">
+          <i class="fa-solid fa-check-circle"></i> ওকে (সব আপডেট সেভ করুন)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">মেসেজ</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB4Xaw2zDu5QEd759d6OXviK90aJl9kuoM",
+      authDomain: "hexa-benzene-turnament.firebaseapp.com",
+      databaseURL: "https://hexa-benzene-turnament-default-rtdb.firebaseio.com",
+      projectId: "hexa-benzene-turnament",
+      storageBucket: "hexa-benzene-turnament.firebasestorage.app",
+      messagingSenderId: "834334941784",
+      appId: "1:834334941784:web:e272e5f03f2ace7256a02d",
+      measurementId: "G-GSWH2K952G"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const DOCUMENT_KEY = "tournament_data";
+    let data = { matches: [] };
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3000);
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      const loginForm = document.getElementById("adminLoginForm");
+      const dashboard = document.getElementById("adminDashboard");
+
+      if (user) {
+        loginForm.classList.add("hidden");
+        dashboard.classList.remove("hidden");
+      } else {
+        loginForm.classList.remove("hidden");
+        dashboard.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("adminEmail").value;
+      const pass = document.getElementById("adminPassword").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        showToast("সফলভাবে অ্যাডমিন লগইন হয়েছে!");
+      } catch (error) {
+        showToast("ভুল ইমেইল বা পাসওয়ার্ড!");
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      signOut(auth).then(() => showToast("লগআউট হয়েছে।"));
+    });
+
+    onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
+      if (docSnap.exists()) {
+        data = docSnap.data();
+      } else {
+        data = { matches: [] };
+      }
+      render();
+    });
+
+    async function saveToFirebase() {
+      try {
+        await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
+        showToast("সবকিছু সফলভাবে সেভ ও আপলোড হয়েছে!");
+        render();
+      } catch (error) {
+        showToast("সেভ করতে সমস্যা হয়েছে!");
+      }
+    }
+
+    document.getElementById("saveAllBtn").addEventListener("click", saveToFirebase);
+
+    window.createMatch = function() {
+      const input = document.getElementById("matchName");
+      const name = input.value.trim();
+      if (!name) return showToast("Match-এর নাম লিখুন!");
+
+      data.matches.push({ id: Date.now().toString(), name: name, teams: [] });
+      input.value = "";
+      render();
+    }
+
+    window.deleteMatch = function(matchId) {
+      if (confirm("ম্যাচটি ডিলিট করতে চান?")) {
+        data.matches = data.matches.filter(m => m.id !== matchId);
+        render();
+      }
+    }
+
+    window.addTeam = function(id) {
+      const match = data.matches.find(m => m.id === id);
+      if (!match) return;
+      if (match.teams.length >= 12) return showToast("সর্বোচ্চ ১২টি টিম দেওয়া যাবে!");
+
+      match.teams.push({
+        id: Date.now().toString() + Math.random(),
+        name: "New Team",
+        logo: "",
+        booyah: 0,
+        kill: 0,
+        placement: 0
+      });
+      render();
+    }
+
+    window.updateTeam = function(matchId, teamId, field, value) {
+      const match = data.matches.find(m => m.id === matchId);
+      const team = match?.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      if (field === "name" || field === "logo") team[field] = value;
+      else team[field] = Math.max(0, Number(value) || 0);
+    }
+
+    window.handleLogoUpload = function(matchId, teamId, fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        window.updateTeam(matchId, teamId, 'logo', e.target.result);
+        showToast("লোগো নির্বাচন করা হয়েছে। সেভ করতে 'ওকে' চাপুন।");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.deleteTeam = function(matchId, teamId) {
+      const match = data.matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      match.teams = match.teams.filter(t => t.id !== teamId);
+      render();
+    }
+
+    function render() {
+      const admin = document.getElementById("adminArea");
+      if (!admin) return;
+
+      admin.innerHTML = data.matches.map(m => `
+        <div class="admin-match-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="color:var(--accent-yellow);">${m.name}</h3>
+            <div>
+              <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;">+ Team</button>
+              <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;">ডিলিট</button>
+            </div>
+          </div>
+          <div>
+            ${m.teams.map(t => `
+              <div class="admin-team-row">
+                <input value="${t.name}" onchange="updateTeam('${m.id}','${t.id}','name',this.value)" placeholder="Team Name" style="margin-bottom:0;">
+                <input type="file" accept="image/*" onchange="handleLogoUpload('${m.id}','${t.id}',this)" style="margin-bottom:0; font-size:0.75rem;" title="Logo">
+                <input type="number" min="0" value="${t.booyah || 0}" onchange="updateTeam('${m.id}','${t.id}','booyah',this.value)" placeholder="Booyah" style="margin-bottom:0;" title="Booyah">
+                <input type="number" min="0" value="${t.kill || 0}" onchange="updateTeam('${m.id}','${t.id}','kill',this.value)" placeholder="Kill" style="margin-bottom:0;">
+                <input type="number" min="0" value="${t.placement || 0}" onchange="updateTeam('${m.id}','${t.id}','placement',this.value)" placeholder="Place" style="margin-bottom:0;">
+                <strong style="color:var(--accent-yellow);">Tot: ${(t.kill||0)+(t.placement||0)}</strong>
+                <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("createMatch")?.addEventListener("click", window.createMatch);
+  </script>
+</body>
+</html>
