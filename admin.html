@@ -221,6 +221,7 @@
 
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
+    let isInitialLoad = true; // প্রথম লোডের সময় ফোকাস বা রেন্ডারিং সমস্যা এড়াতে
 
     function showToast(msg) {
       const toast = document.getElementById("toast");
@@ -265,14 +266,19 @@
       } else {
         data = { matches: [] };
       }
-      render();
+      
+      // শুধুমাত্র প্রথমবার অথবা যখন ফায়ারবেস থেকে ডেটা আসবে তখন রেন্ডার হবে, 
+      // টাইপিংয়ের সময় বারবার রি-রেন্ডার হয়ে ইনপুট কেটে যাবে না।
+      if (isInitialLoad) {
+        render();
+        isInitialLoad = false;
+      }
     });
 
     async function saveToFirebase() {
       try {
         await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
         showToast("সবকিছু সফলভাবে সেভ ও আপলোড হয়েছে!");
-        render();
       } catch (error) {
         showToast("সেভ করতে সমস্যা হয়েছে!");
       }
@@ -320,6 +326,12 @@
 
       if (field === "name" || field === "logo") team[field] = value;
       else team[field] = Math.max(0, Number(value) || 0);
+
+      // টোটাল কিল+প্লেসমেন্ট লাইভ আপডেট দেখানোর জন্য শুধু টোটাল টেক্সট আপডেট করা যেতে পারে বা রেখে দেওয়া যায়
+      const totalEl = document.getElementById(`tot-${teamId}`);
+      if(totalEl) {
+        totalEl.innerText = `Tot: ${(Number(team.kill)||0) + (Number(team.placement)||0)}`;
+      }
     }
 
     window.handleLogoUpload = function(matchId, teamId, fileInput) {
@@ -329,7 +341,7 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         window.updateTeam(matchId, teamId, 'logo', e.target.result);
-        showToast("লোগো নির্বাচন করা হয়েছে। সেভ করতে 'ওকে' চাপুন।");
+        showToast("লোগো সফলভাবে যুক্ত হয়েছে। সেভ করতে 'ওকে' চাপুন।");
       };
       reader.readAsDataURL(file);
     }
@@ -358,12 +370,12 @@
           <div>
             ${m.teams.map(t => `
               <div class="admin-team-row">
-                <input value="${t.name}" onchange="updateTeam('${m.id}','${t.id}','name',this.value)" placeholder="Team Name" style="margin-bottom:0;">
+                <input value="${t.name}" oninput="updateTeam('${m.id}','${t.id}','name',this.value)" placeholder="Team Name" style="margin-bottom:0;">
                 <input type="file" accept="image/*" onchange="handleLogoUpload('${m.id}','${t.id}',this)" style="margin-bottom:0; font-size:0.75rem;" title="Logo">
-                <input type="number" min="0" value="${t.booyah || 0}" onchange="updateTeam('${m.id}','${t.id}','booyah',this.value)" placeholder="Booyah" style="margin-bottom:0;" title="Booyah">
-                <input type="number" min="0" value="${t.kill || 0}" onchange="updateTeam('${m.id}','${t.id}','kill',this.value)" placeholder="Kill" style="margin-bottom:0;">
-                <input type="number" min="0" value="${t.placement || 0}" onchange="updateTeam('${m.id}','${t.id}','placement',this.value)" placeholder="Place" style="margin-bottom:0;">
-                <strong style="color:var(--accent-yellow);">Tot: ${(t.kill||0)+(t.placement||0)}</strong>
+                <input type="number" min="0" value="${t.booyah || 0}" oninput="updateTeam('${m.id}','${t.id}','booyah',this.value)" placeholder="Booyah" style="margin-bottom:0;" title="Booyah">
+                <input type="number" min="0" value="${t.kill || 0}" oninput="updateTeam('${m.id}','${t.id}','kill',this.value)" placeholder="Kill" style="margin-bottom:0;">
+                <input type="number" min="0" value="${t.placement || 0}" oninput="updateTeam('${m.id}','${t.id}','placement',this.value)" placeholder="Place" style="margin-bottom:0;">
+                <strong id="tot-${t.id}" style="color:var(--accent-yellow);">Tot: ${(Number(t.kill||0))+(Number(t.placement||0))}</strong>
                 <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>
               </div>
             `).join("")}
