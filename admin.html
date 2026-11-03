@@ -191,13 +191,6 @@
 
       <!-- Admin Matches Area -->
       <div id="adminArea"></div>
-
-      <!-- OK / Save Button -->
-      <div class="card" style="text-align: center; margin-top: 15px;">
-        <button id="saveAllBtn" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 1rem;">
-          <i class="fa-solid fa-check-circle"></i> ওকে (সব আপডেট সেভ করুন)
-        </button>
-      </div>
     </div>
   </div>
 
@@ -226,11 +219,12 @@
 
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
+    let isInitialLoad = true;
 
     function showToast() {
       const toast = document.getElementById("toast");
       toast.style.display = "block";
-      setTimeout(() => { toast.style.display = "none"; }, 3000);
+      setTimeout(() => { toast.style.display = "none"; }, 2500);
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -270,19 +264,18 @@
         data = { matches: [] };
       }
       render();
+      isInitialLoad = false;
     });
 
-    async function saveToFirebase() {
+    async function autoSaveToFirebase() {
+      if (isInitialLoad) return;
       try {
         await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
-        showToast(); // সফল বার্তা দেখাবে
-        render();
+        showToast();
       } catch (error) {
-        alert("সেভ করতে সমস্যা হয়েছে!");
+        console.error("Auto-save error:", error);
       }
     }
-
-    document.getElementById("saveAllBtn").addEventListener("click", saveToFirebase);
 
     window.createMatch = function() {
       const input = document.getElementById("matchName");
@@ -291,12 +284,14 @@
 
       data.matches.push({ id: Date.now().toString(), name: name, teams: [] });
       input.value = "";
+      autoSaveToFirebase();
       render();
     }
 
     window.deleteMatch = function(matchId) {
       if (confirm("ম্যাচটি ডিলিট করতে চান?")) {
         data.matches = data.matches.filter(m => m.id !== matchId);
+        autoSaveToFirebase();
         render();
       }
     }
@@ -314,6 +309,7 @@
         kill: 0,
         placement: 0
       });
+      autoSaveToFirebase();
       render();
     }
 
@@ -324,6 +320,8 @@
 
       if (field === "name" || field === "logo") team[field] = value;
       else team[field] = Math.max(0, Number(value) || 0);
+
+      autoSaveToFirebase();
     }
 
     window.handleLogoUpload = function(matchId, teamId, fileInput) {
@@ -343,6 +341,7 @@
       if (!match) return;
 
       match.teams = match.teams.filter(t => t.id !== teamId);
+      autoSaveToFirebase();
       render();
     }
 
@@ -370,7 +369,7 @@
               return `
               <div class="admin-team-row">
                 <div>
-                  <input value="${t.name}" onchange="updateTeam('${m.id}','${t.id}','name',this.value)" placeholder="Team Name" style="margin-bottom:4px;">
+                  <input value="${t.name}" oninput="updateTeam('${m.id}','${t.id}','name',this.value)" placeholder="Team Name" style="margin-bottom:4px;">
                 </div>
                 <div>
                   <label style="font-size: 11px; color: #aaa; display:block; margin-bottom:2px;">${logoLabel}</label>
@@ -378,16 +377,16 @@
                   <div class="file-status">${logoStatus}</div>
                 </div>
                 <div>
-                  <input type="number" min="0" value="${t.booyah || 0}" onchange="updateTeam('${m.id}','${t.id}','booyah',this.value)" placeholder="Booyah" style="margin-bottom:0;" title="Booyah">
+                  <input type="number" min="0" value="${t.booyah || 0}" oninput="updateTeam('${m.id}','${t.id}','booyah',this.value)" placeholder="Booyah" style="margin-bottom:0;" title="Booyah">
                 </div>
                 <div>
-                  <input type="number" min="0" value="${t.kill || 0}" onchange="updateTeam('${m.id}','${t.id}','kill',this.value)" placeholder="Kill" style="margin-bottom:0;" title="Kill">
+                  <input type="number" min="0" value="${t.kill || 0}" oninput="updateTeam('${m.id}','${t.id}','kill',this.value)" placeholder="Kill" style="margin-bottom:0;" title="Kill">
                 </div>
                 <div>
-                  <input type="number" min="0" value="${t.placement || 0}" onchange="updateTeam('${m.id}','${t.id}','placement',this.value)" placeholder="Place" style="margin-bottom:0;" title="Placement">
+                  <input type="number" min="0" value="${t.placement || 0}" oninput="updateTeam('${m.id}','${t.id}','placement',this.value)" placeholder="Place" style="margin-bottom:0;" title="Placement">
                 </div>
                 <div>
-                  <strong style="color:var(--accent-yellow); font-size: 0.85rem;">Tot: ${(t.kill||0)+(t.placement||0)}</strong>
+                  <strong style="color:var(--accent-yellow); font-size: 0.85rem;">Tot: ${(Number(t.kill)||0)+(Number(t.placement)||0)}</strong>
                 </div>
                 <div>
                   <button onclick="deleteTeam('${m.id}','${t.id}')" class="btn btn-danger" style="padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>
