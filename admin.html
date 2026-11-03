@@ -109,6 +109,20 @@
       margin-bottom: 12px;
     }
 
+    .match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .match-content {
+      margin-top: 10px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 10px;
+    }
+
     .admin-team-row {
       display: grid;
       grid-template-columns: 1.2fr 1.2fr 0.7fr 0.7fr 0.7fr 0.7fr auto;
@@ -220,6 +234,7 @@
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
     let isInitialLoad = true;
+    let expandedMatches = {}; // ট্র্যাক রাখবে কোন ম্যাচগুলো খোলা আছে
 
     function showToast() {
       const toast = document.getElementById("toast");
@@ -277,12 +292,19 @@
       }
     }
 
+    window.toggleMatch = function(matchId) {
+      expandedMatches[matchId] = !expandedMatches[matchId];
+      render();
+    }
+
     window.createMatch = function() {
       const input = document.getElementById("matchName");
       const name = input.value.trim();
       if (!name) return alert("Match-এর নাম লিখুন!");
 
-      data.matches.push({ id: Date.now().toString(), name: name, teams: [] });
+      const newId = Date.now().toString();
+      data.matches.push({ id: newId, name: name, teams: [] });
+      expandedMatches[newId] = true; // নতুন ম্যাচ তৈরি করলে সেটি ওপেন থাকবে
       input.value = "";
       autoSaveToFirebase();
       render();
@@ -291,6 +313,7 @@
     window.deleteMatch = function(matchId) {
       if (confirm("ম্যাচটি ডিলিট করতে চান?")) {
         data.matches = data.matches.filter(m => m.id !== matchId);
+        delete expandedMatches[matchId];
         autoSaveToFirebase();
         render();
       }
@@ -309,6 +332,7 @@
         kill: 0,
         placement: 0
       });
+      expandedMatches[id] = true; // টিম যোগ করলে ম্যাচ ওপেন হয়ে যাবে
       autoSaveToFirebase();
       render();
     }
@@ -349,16 +373,18 @@
       const admin = document.getElementById("adminArea");
       if (!admin) return;
 
-      admin.innerHTML = data.matches.map(m => `
+      admin.innerHTML = data.matches.map(m => {
+        const isExpanded = !!expandedMatches[m.id];
+        return `
         <div class="admin-match-box">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="color:var(--accent-yellow);">${m.name}</h3>
-            <div>
+          <div class="match-header" onclick="toggleMatch('${m.id}')">
+            <h3 style="color:var(--accent-yellow);"><i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:0.8rem; margin-right:6px;"></i>${m.name} <span style="font-size:0.75rem; color:var(--text-muted);">(${m.teams.length} Teams)</span></h3>
+            <div onclick="event.stopPropagation()">
               <button onclick="addTeam('${m.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;">+ Team</button>
               <button onclick="deleteMatch('${m.id}')" class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;">ডিলিট</button>
             </div>
           </div>
-          <div>
+          <div class="match-content ${isExpanded ? '' : 'hidden'}">
             ${m.teams.map(t => {
               const hasLogo = t.logo && t.logo.trim() !== "";
               const logoLabel = hasLogo ? "টিম লোগো (ফাইল রিপ্লেস করুন)" : "টিম লোগো (ফাইল চুজ করুন)";
@@ -396,7 +422,8 @@
             }).join("")}
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
 
     document.getElementById("createMatch")?.addEventListener("click", window.createMatch);
