@@ -169,10 +169,14 @@
       <p>ম্যাচ ও টিম ম্যানেজমেন্ট সিস্টেম</p>
     </header>
 
-    <div style="margin-bottom: 15px;">
+    <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
       <a href="index.html" class="btn btn-secondary">
         <i class="fa-solid fa-arrow-left"></i> মূল লিডারবোর্ডে ফিরে যান
       </a>
+      <!-- ওকে / আপডেট বাটন -->
+      <button id="saveGlobalBtn" class="btn btn-success">
+        <i class="fa-solid fa-check-circle"></i> ওকে (আপডেট করুন)
+      </button>
     </div>
 
     <!-- Login Form -->
@@ -209,7 +213,7 @@
   </div>
 
   <!-- Bangla Success Toast Notification -->
-  <div id="toast">সফলভাবে আপনার লিডারবোর্ডের কাজ সম্পন্ন হয়েছে!</div>
+  <div id="toast">সফলভাবে পয়েন্ট টেবিল আপডেট করা হয়েছে!</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -234,10 +238,11 @@
     const DOCUMENT_KEY = "tournament_data";
     let data = { matches: [] };
     let isInitialLoad = true;
-    let activeMatchId = null; // এক সময়ে একটি ম্যাচ খোলা রাখার জন্য ট্র্যাক ভেরিয়েবল
+    let activeMatchId = null;
 
-    function showToast() {
+    function showToast(message = "সফলভাবে পয়েন্ট টেবিল আপডেট করা হয়েছে!") {
       const toast = document.getElementById("toast");
+      toast.innerText = message;
       toast.style.display = "block";
       setTimeout(() => { toast.style.display = "none"; }, 2500);
     }
@@ -257,12 +262,12 @@
 
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("adminEmail.value") || document.getElementById("adminEmail").value;
+      const email = document.getElementById("adminEmail").value;
       const pass = document.getElementById("adminPassword").value;
 
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-        alert("সফলভাবে অ্যাডমিন লগইন হয়েছে!");
+        showToast("সফলভাবে অ্যাডমিন লগইন হয়েছে!");
       } catch (error) {
         alert("ভুল ইমেইল বা পাসওয়ার্ড!");
       }
@@ -282,20 +287,22 @@
       isInitialLoad = false;
     });
 
-    async function autoSaveToFirebase() {
-      if (isInitialLoad) return;
+    // ম্যানুয়াল সেভ বা "ওকে" বাটনের ফাংশন
+    async function saveToFirebase() {
       try {
         await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
-        showToast();
+        showToast("সফলভাবে পয়েন্ট টেবিল আপডেট ও আপলোড করা হয়েছে!");
       } catch (error) {
-        console.error("Auto-save error:", error);
+        console.error("Save error:", error);
+        alert("ডাটা সেভ করতে সমস্যা হয়েছে!");
       }
     }
 
-    // একটি ম্যাচে ক্লিক করলে অন্য ম্যাচ বন্ধ হয়ে যাবে এবং ওই ম্যাচটি ওপেন হবে
+    document.getElementById("saveGlobalBtn").addEventListener("click", saveToFirebase);
+
     window.toggleMatch = function(matchId) {
       if (activeMatchId === matchId) {
-        activeMatchId = null; // আবার ক্লিক করলে বন্ধ হয়ে যাবে
+        activeMatchId = null;
       } else {
         activeMatchId = matchId;
       }
@@ -309,18 +316,18 @@
 
       const newId = Date.now().toString();
       data.matches.push({ id: newId, name: name, teams: [] });
-      activeMatchId = newId; // নতুন ম্যাচ তৈরি করলে সেটি ওপেন থাকবে
+      activeMatchId = newId;
       input.value = "";
-      autoSaveToFirebase();
       render();
+      saveToFirebase(); // নতুন ম্যাচ তৈরির সাথে সাথেই ফায়ারবেসে আপডেট হয়ে যাবে
     }
 
     window.deleteMatch = function(matchId) {
       if (confirm("ম্যাচটি ডিলিট করতে চান?")) {
         data.matches = data.matches.filter(m => m.id !== matchId);
         if (activeMatchId === matchId) activeMatchId = null;
-        autoSaveToFirebase();
         render();
+        saveToFirebase();
       }
     }
 
@@ -338,7 +345,6 @@
         placement: 0
       });
       activeMatchId = id;
-      autoSaveToFirebase();
       render();
     }
 
@@ -349,8 +355,6 @@
 
       if (field === "name" || field === "logo") team[field] = value;
       else team[field] = Math.max(0, Number(value) || 0);
-
-      autoSaveToFirebase();
     }
 
     window.handleLogoUpload = function(matchId, teamId, fileInput) {
@@ -370,7 +374,6 @@
       if (!match) return;
 
       match.teams = match.teams.filter(t => t.id !== teamId);
-      autoSaveToFirebase();
       render();
     }
 
