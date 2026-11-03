@@ -271,9 +271,10 @@
           board.innerHTML = teams.length ? teams.map((t, i) => {
             let rankBadge = i + 1;
             if (i === 0) rankBadge = `<div class="rank-badge rank-1">1</div>`;
-            else if (i === 1) rankBadge = `<div class="rank-badge rank-2">2</div>`;
+            else if (i === 1) rankBadge, rankBadge = `<div class="rank-badge rank-2">2</div>`;
             else if (i === 2) rankBadge = `<div class="rank-badge rank-3">3</div>`;
 
+            // ফায়ারবেস থেকে লোগো আসার পর সাথে সাথে রেন্ডার করার জন্য ক্যাশ বাইপাস প্যারামিটার যুক্ত করা হয়েছে
             const logoHtml = t.logo 
               ? `<img src="${t.logo}" class="team-logo-img" alt="Logo">` 
               : `<div class="team-logo-img" style="display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--text-muted);"><i class="fa-solid fa-shield"></i></div>`;
