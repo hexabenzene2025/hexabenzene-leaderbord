@@ -113,14 +113,21 @@
 
     .table-container { width: 100%; overflow-x: auto; }
 
-    table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 5px; }
+    table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  text-align: left;
+  margin-top: 5px;
+}
 
-    th, td {
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--card-border);
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
+th, td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.78rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
 
     th { background: #0d1117; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
 
