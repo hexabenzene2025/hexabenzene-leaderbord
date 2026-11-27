@@ -236,10 +236,56 @@
     const db = getFirestore(app);
 
     const DOCUMENT_KEY = "tournament_data";
+    const ADMIN_DRAFT_KEY = "hb_admin_draft_v1";
+    const ADMIN_ACTIVE_MATCH_KEY = "hb_admin_active_match_v1";
+
     let data = { matches: [] };
     let isInitialLoad = true;
     let activeMatchId = null;
     let isSaving = false; // ডাবল ট্যাপ বা বারবার চাপ রোধ করার জন্য সেভ লক
+
+    // ১. লোকাল স্টোরেজে অ্যাডমিন ড্রাফট সেভ করার ফাংশন
+    function saveAdminDraft() {
+      try {
+        localStorage.setItem(ADMIN_DRAFT_KEY, JSON.stringify(data));
+        localStorage.setItem(ADMIN_ACTIVE_MATCH_KEY, activeMatchId || "");
+      } catch (err) {
+        console.error("অ্যাডমিন ড্রাফট সেভ করা যায়নি:", err);
+      }
+    }
+
+    // ২. অ্যাপ বা পেজ খুললে লোকাল স্টোরেজ থেকে ড্রাফট লোড করার ফাংশন
+    function loadAdminDraft() {
+      try {
+        const savedDraft = localStorage.getItem(ADMIN_DRAFT_KEY);
+        const savedActiveMatch = localStorage.getItem(ADMIN_ACTIVE_MATCH_KEY);
+        return {
+          draftData: savedDraft ? JSON.parse(savedDraft) : null,
+          savedActiveMatchId: savedActiveMatch || null
+        };
+      } catch (err) {
+        console.error("অ্যাডমিন ড্রাফট লোড করা যায়নি:", err);
+        return { draftData: null, savedActiveMatchId: null };
+      }
+    }
+
+    // ৩. ফায়ারবেসে আপডেট হয়ে গেলে লোকাল স্টোরেজের ড্রাফট মুছে ফেলার ফাংশন
+    function clearAdminDraft() {
+      try {
+        localStorage.removeItem(ADMIN_DRAFT_KEY);
+        localStorage.removeItem(ADMIN_ACTIVE_MATCH_KEY);
+      } catch (err) {
+        console.error("অ্যাডমিন ড্রাফট মুছে ফেলা যায়নি:", err);
+      }
+    }
+
+    // শুরুতেই লোকাল ড্রাফট থাকলে সেটা রিস্টোর করা
+    const cachedDraft = loadAdminDraft();
+    if (cachedDraft.draftData) {
+      data = cachedDraft.draftData;
+      activeMatchId = cachedDraft.savedActiveMatchId;
+      render();
+    }
 
     function showToast(message = "সফলভাবে পয়েন্ট টেবিল আপডেট করা হয়েছে!") {
       const toast = document.getElementById("toast");
@@ -280,14 +326,14 @@
 
     onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
       if (docSnap.exists()) {
-        // প্রথম লোড বা ফায়ারবেজ থেকে ডাটা আসলে লোকাল স্টেট আপডেট হবে
-        if (isInitialLoad) {
+        // লোকাল ড্রাফট না থাকলে ফায়ারবেজ থেকে প্রথম লোডে ডেটা নেওয়া হবে
+        if (isInitialLoad && !cachedDraft.draftData) {
           data = docSnap.data();
           render();
           isInitialLoad = false;
         }
       } else {
-        if (isInitialLoad) {
+        if (isInitialLoad && !cachedDraft.draftData) {
           data = { matches: [] };
           render();
           isInitialLoad = false;
@@ -295,29 +341,36 @@
       }
     });
 
-    // ম্যানুয়াল "ওকে" বাটন ফাংশন (একবার চাপলে সেভ হবে, বারবার চাপলে সমস্যা হবে না)
-    async function saveToFirebase() {
-      if (isSaving) return; // যদি ইতিমধ্যে সেভ হতে থাকে, তবে দ্বিতীয়বার ক্লিক কাজ করবে না
+    // ফায়ারবেসে ডেটা সেভ/আপডেট করার মূল ফাংশন
+    async function saveToFirebase(customMessage = "সফলভাবে পয়েন্ট টেবিল আপডেট ও আপলোড করা হয়েছে!") {
+      if (isSaving) return;
       isSaving = true;
 
       const saveBtn = document.getElementById("saveGlobalBtn");
-      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> সেভ হচ্ছে...`;
-      saveBtn.disabled = true;
+      if (saveBtn) {
+        saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> সেভ হচ্ছে...`;
+        saveBtn.disabled = true;
+      }
 
       try {
         await setDoc(doc(db, "tournaments", DOCUMENT_KEY), data);
-        showToast("সফলভাবে পয়েন্ট টেবিল আপডেট ও আপলোড করা হয়েছে!");
+        clearAdminDraft(); // সফলভাবে আপডেট হওয়ার পর ড্রাফট মুছে ফেলা হচ্ছে
+        showToast(customMessage);
       } catch (error) {
         console.error("Save error:", error);
         alert("ডাটা সেভ করতে সমস্যা হয়েছে!");
       } finally {
         isSaving = false;
-        saveBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ওকে (আপডেট করুন)`;
-        saveBtn.disabled = false;
+        if (saveBtn) {
+          saveBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ওকে (আপডেট করুন)`;
+          saveBtn.disabled = false;
+        }
       }
     }
 
-    document.getElementById("saveGlobalBtn").addEventListener("click", saveToFirebase);
+    document.getElementById("saveGlobalBtn").addEventListener("click", () => {
+      saveToFirebase("সফলভাবে পয়েন্ট টেবিল আপডেট ও আপলোড করা হয়েছে!");
+    });
 
     window.toggleMatch = function(matchId) {
       if (activeMatchId === matchId) {
@@ -325,6 +378,7 @@
       } else {
         activeMatchId = matchId;
       }
+      saveAdminDraft();
       render();
     }
 
@@ -337,14 +391,18 @@
       data.matches.push({ id: newId, name: name, teams: [] });
       activeMatchId = newId;
       input.value = "";
+      saveAdminDraft();
       render();
     }
 
-    window.deleteMatch = function(matchId) {
+    // ম্যাচ ডিলিট করলে সাথে সাথে ড্রাফট আপডেট ও ফায়ারবেস থেকে পার্মানেন্টলি মুছে যাবে
+    window.deleteMatch = async function(matchId) {
       if (confirm("ম্যাচটি ডিলিট করতে চান?")) {
         data.matches = data.matches.filter(m => m.id !== matchId);
         if (activeMatchId === matchId) activeMatchId = null;
+        saveAdminDraft();
         render();
+        await saveToFirebase("ম্যাচটি ডেটাবেস থেকে স্থায়ীভাবে মুছে ফেলা হয়েছে!");
       }
     }
 
@@ -362,10 +420,11 @@
         placement: 0
       });
       activeMatchId = id;
+      saveAdminDraft();
       render();
     }
 
-    // ইনপুট ফিল্ড বদলালে সরাসরি লোকাল ডাটা আপডেট হবে (রি-রেন্ডার হবে না, ফলে ফোকাস কাটবে না)
+    // ইনপুট ফিল্ড বদলালে সরাসরি লোকাল ডাটা ও লোকাল স্টোরেজ আপডেট হবে
     window.updateTeam = function(matchId, teamId, field, value) {
       const match = data.matches.find(m => m.id === matchId);
       const team = match?.teams.find(t => t.id === teamId);
@@ -375,7 +434,6 @@
         team[field] = value;
       } else {
         team[field] = Math.max(0, Number(value) || 0);
-        // মোট পয়েন্ট লাইভ আপডেট দেখানোর জন্য
         const totEl = document.getElementById(`tot-${teamId}`);
         if (totEl) {
           const kill = field === 'kill' ? Number(value)||0 : Number(team.kill||0);
@@ -383,6 +441,7 @@
           totEl.innerText = `Tot: ${kill + place}`;
         }
       }
+      saveAdminDraft();
     }
 
     window.handleLogoUpload = function(matchId, teamId, fileInput) {
@@ -397,12 +456,15 @@
       reader.readAsDataURL(file);
     }
 
-    window.deleteTeam = function(matchId, teamId) {
+    // টিম ডিলিট করলে সাথে সাথে লোকাল ড্রাফট আপডেট ও ফায়ারবেস থেকে মুছে যাবে
+    window.deleteTeam = async function(matchId, teamId) {
       const match = data.matches.find(m => m.id === matchId);
       if (!match) return;
 
       match.teams = match.teams.filter(t => t.id !== teamId);
+      saveAdminDraft();
       render();
+      await saveToFirebase("টিমটি ডেটাবেস থেকে মুছে ফেলা হয়েছে!");
     }
 
     function render() {
