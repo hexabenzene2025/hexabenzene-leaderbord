@@ -228,13 +228,66 @@
     const db = getFirestore(app);
 
     const DOCUMENT_KEY = "tournament_data";
-    let data = { matches: [] };
+    const STORAGE_DATA_KEY = "hb_leaderboard_data_v1";
+    const STORAGE_MATCH_KEY = "hb_selected_match_v1";
 
+    // ১. পেজ বা অ্যাপ খুললে লোকাল স্টোরেজ থেকে ডেটা লোড করার ফাংশন
+    function loadFromLocalStorage() {
+      try {
+        const savedData = localStorage.getItem(STORAGE_DATA_KEY);
+        const savedMatch = localStorage.getItem(STORAGE_MATCH_KEY) || "";
+        return {
+          matchesData: savedData ? JSON.parse(savedData) : { matches: [] },
+          selectedMatchId: savedMatch
+        };
+      } catch (err) {
+        console.error("লোকাল স্টোরেজ থেকে লোড করা যায়নি:", err);
+        return { matchesData: { matches: [] }, selectedMatchId: "" };
+      }
+    }
+
+    // ২. ডেটা লোকাল স্টোরেজে সেভ করার ফাংশন
+    function saveDataToLocalStorage(matchesData) {
+      try {
+        localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(matchesData));
+      } catch (err) {
+        console.error("লোকাল স্টোরেজে ডেটা সেভ করা যায়নি:", err);
+      }
+    }
+
+    // নির্বাচিত ম্যাপের ID লোকাল স্টোরেজে সেভ করার ফাংশন
+    function saveSelectedMatchToLocalStorage(matchId) {
+      try {
+        localStorage.setItem(STORAGE_MATCH_KEY, matchId || "");
+      } catch (err) {
+        console.error("সিলেক্টেড ম্যাপ সেভ করা যায়নি:", err);
+      }
+    }
+
+    // ৩. ডেটা মুছে গেলে বা রিসেট হলে লোকাল স্টোরেজ ক্লিয়ার করার ফাংশন
+    function clearLocalLeaderboardStorage() {
+      try {
+        localStorage.removeItem(STORAGE_DATA_KEY);
+        localStorage.removeItem(STORAGE_MATCH_KEY);
+      } catch (err) {
+        console.error("লোকাল স্টোরেজ ক্লিয়ার করা যায়নি:", err);
+      }
+    }
+
+    // শুরুতেই লোকাল স্টোরেজ থেকে ডেটা বসিয়ে রেন্ডার করা (অ্যাপ রিলোড হলেও সাথে সাথে দেখাবে)
+    const initialCache = loadFromLocalStorage();
+    let data = initialCache.matchesData;
+    let preferredMatchId = initialCache.selectedMatchId;
+    render(preferredMatchId);
+
+    // ফায়ারস্টোর থেকে লাইভ আপডেট এলে ডেটা আপডেট ও লোকাল স্টোরেজে সেভ করা
     onSnapshot(doc(db, "tournaments", DOCUMENT_KEY), (docSnap) => {
       if (docSnap.exists()) {
-        data = docSnap.data();
+        data = docSnap.data() || { matches: [] };
+        saveDataToLocalStorage(data);
       } else {
         data = { matches: [] };
+        clearLocalLeaderboardStorage();
       }
       render();
     });
@@ -243,38 +296,40 @@
       return Number(team.kill || 0) + Number(team.placement || 0);
     }
 
-    function render() {
+    function render(forcedMatchId = null) {
       const select = document.getElementById("matchSelect");
       const board = document.getElementById("leaderboard");
       if (!select || !board) return;
 
-      const previous = select.value;
+      const previous = forcedMatchId !== null ? forcedMatchId : (select.value || preferredMatchId);
 
-      select.innerHTML = `<option value="">ম্যাপ নির্বাচন করুন</option>` + data.matches.map(m =>
+      select.innerHTML = `<option value="">ম্যাপ নির্বাচন করুন</option>` + (data.matches || []).map(m =>
         `<option value="${m.id}">${m.name}</option>`
       ).join("");
 
-      if (!data.matches.length) {
+      if (!data.matches || !data.matches.length) {
         select.innerHTML = `<option value="">কোনো ম্যাচ পাওয়া যায়নি</option>`;
         board.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">এখনো কোনো ম্যাচ তৈরি করা হয়নি।</td></tr>`;
+        saveSelectedMatchToLocalStorage("");
       } else {
-        if (data.matches.some(m => m.id === previous)) {
+        if (data.matches.some(m => String(m.id) === String(previous))) {
           select.value = previous;
+          saveSelectedMatchToLocalStorage(previous);
         } else {
           select.value = "";
+          saveSelectedMatchToLocalStorage("");
         }
 
-        const match = data.matches.find(m => m.id === select.value);
+        const match = data.matches.find(m => String(m.id) === String(select.value));
         if (match) {
-          const teams = [...match.teams].sort((a, b) => total(b) - total(a));
+          const teams = [...(match.teams || [])].sort((a, b) => total(b) - total(a));
 
           board.innerHTML = teams.length ? teams.map((t, i) => {
             let rankBadge = i + 1;
             if (i === 0) rankBadge = `<div class="rank-badge rank-1">1</div>`;
-            else if (i === 1) rankBadge, rankBadge = `<div class="rank-badge rank-2">2</div>`;
+            else if (i === 1) rankBadge = `<div class="rank-badge rank-2">2</div>`;
             else if (i === 2) rankBadge = `<div class="rank-badge rank-3">3</div>`;
 
-            // ফায়ারবেস থেকে লোগো আসার পর সাথে সাথে রেন্ডার করার জন্য ক্যাশ বাইপাস প্যারামিটার যুক্ত করা হয়েছে
             const logoHtml = t.logo 
               ? `<img src="${t.logo}" class="team-logo-img" alt="Logo">` 
               : `<div class="team-logo-img" style="display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--text-muted);"><i class="fa-solid fa-shield"></i></div>`;
@@ -301,7 +356,11 @@
       }
     }
 
-    document.getElementById("matchSelect")?.addEventListener("change", render);
+    document.getElementById("matchSelect")?.addEventListener("change", (e) => {
+      preferredMatchId = e.target.value;
+      saveSelectedMatchToLocalStorage(preferredMatchId);
+      render();
+    });
   </script>
 </body>
 </html>
